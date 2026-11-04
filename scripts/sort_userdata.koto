@@ -19,10 +19,21 @@ partition = |arr, lo, hi|
     j
 
 quicksort = |arr, lo, hi|
-    while lo < hi
-        p = partition arr, lo, hi
-        quicksort arr, lo, (p - 1)
-        lo = p + 1
+    # Each triple stores lo, hi, and the previous stack entry (0 = empty).
+    ranges = [lo, hi, 0]
+    top = 3
+    while top > 0
+        lo = ranges[top - 3]
+        hi = ranges[top - 2]
+        top = ranges[top - 1]
+        while lo < hi
+            p = partition arr, lo, hi
+            if p + 1 < hi
+                ranges.push (p + 1)
+                ranges.push hi
+                ranges.push top
+                top = ranges.count()
+            hi = p - 1
 
 export bench = ||
     array = []

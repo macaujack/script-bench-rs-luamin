@@ -35,13 +35,28 @@ fn partition(arr: List[RustData], lo: u64, hi: u64) -> u64 {
 }
 
 fn quicksort(arr: List[RustData], lo: u64, hi: u64) {
-    while lo < hi {
-        let p = partition(arr, lo, hi);
-        if p > 0 {
-            quicksort(arr, lo, p - 1);
+    // Each triple stores lo, hi, and the previous stack entry (0 = empty).
+    let ranges = [lo, hi, 0];
+    let top = 3;
+    while top > 0 {
+        lo = match ranges.get(top - 3) { Some(n) => n, None => 0 };
+        hi = match ranges.get(top - 2) { Some(n) => n, None => 0 };
+        top = match ranges.get(top - 1) { Some(n) => n, None => 0 };
+        while lo < hi {
+            let p = partition(arr, lo, hi);
+            if p + 1 < hi {
+                ranges.push(p + 1);
+                ranges.push(hi);
+                ranges.push(top);
+                top = ranges.len();
+            }
+            // Bounds use unsigned integers, so avoid subtracting from zero.
+            if p == 0 {
+                hi = 0;
+            } else {
+                hi = p - 1;
+            }
         }
-        // Tail recursion
-        lo = p + 1;
     }
 }
 

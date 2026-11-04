@@ -23,11 +23,22 @@ local function partition(arr, lo, hi)
 end
 
 local function quicksort(arr, lo, hi)
-	while lo < hi do
-		local p = partition(arr, lo, hi)
-		quicksort(arr, lo, p - 1)
-		-- Tail recursion
-		lo = p + 1
+	-- Each triple stores lo, hi, and the previous stack entry (0 = empty).
+	local ranges = {lo, hi, 0}
+	local top = 3
+	while top > 0 do
+		lo = ranges[top - 2]
+		hi = ranges[top - 1]
+		top = ranges[top]
+		while lo < hi do
+			local p = partition(arr, lo, hi)
+			if p + 1 < hi then
+				local size = #ranges
+				ranges[size + 1], ranges[size + 2], ranges[size + 3] = p + 1, hi, top
+				top = size + 3
+			end
+			hi = p - 1
+		end
 	end
 end
 

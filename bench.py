@@ -7,25 +7,47 @@
 
 import json
 import glob
+import os
 import subprocess
+import tempfile
+from pathlib import Path
 from os.path import splitext, basename
 import matplotlib.pyplot as plt
 
 
 def run_benchmark(name):
     print(f"Running benchmark for {name}", flush=True)
-    proc = subprocess.run(
-        f"cargo criterion --locked --bench {name} --message-format json --features {name}",
-        shell=True,
-        stdout=subprocess.PIPE,
-        text=True,
+    # Read saved measurements directly to avoid cargo-criterion's Windows
+    # socket shutdown error. Separate runs prevent mixing engines or stale data.
+    result_root = Path("target/criterion-runs")
+    result_root.mkdir(parents=True, exist_ok=True)
+    result_dir = Path(tempfile.mkdtemp(prefix=f"{name}-", dir=result_root)).resolve()
+    env = os.environ.copy()
+    env.pop("CARGO_CRITERION_PORT", None)
+    env["CRITERION_HOME"] = str(result_dir)
+    subprocess.run(
+        ["cargo", "bench", "--locked", "--bench", name, "--features", name,
+         "--", "--noplot"],
+        env=env,
         check=True,
     )
     res = []
-    for line in proc.stdout.splitlines():
-        x = json.loads(line)
-        if "id" in x:
-            res.append(x)
+    for path in result_dir.rglob("new/estimates.json"):
+        estimates = json.loads(path.read_text(encoding="utf-8"))
+        benchmark = json.loads(path.with_name("benchmark.json").read_text(encoding="utf-8"))
+        typical = estimates.get("slope") or estimates["mean"]
+        res.append({
+            "id": benchmark["full_id"],
+            "typical": {
+                "estimate": typical["point_estimate"],
+                "lower_bound": typical["confidence_interval"]["lower_bound"],
+                "upper_bound": typical["confidence_interval"]["upper_bound"],
+                "unit": "ns",
+            },
+            "estimates": estimates,
+        })
+    if not res:
+        raise RuntimeError(f"No Criterion measurements found for {name} in {result_dir}")
     return res
 
 

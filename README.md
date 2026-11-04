@@ -4,6 +4,7 @@ The project goal is to benchmark most popular embedded scripting languages for R
 
 - [boa](https://boajs.dev)
 - [koto](https://crates.io/crates/koto)
+- [luamin](https://crates.io/crates/luamin)
 - [mlua](https://crates.io/crates/mlua) (Lua 5.5 and Luau)
 - [rhai](https://crates.io/crates/rhai)
 - [roto](https://crates.io/crates/roto)
@@ -23,10 +24,11 @@ You also must have `wasm32-unknown-unknown` target installed for webassembly ben
 
 | Component | Version |
 |-----------|---------|
-| OS | macOS 27.0, Apple M5 Max |
+| OS | Windows 11 Pro 26H2 (build 26300.9711) |
 | rustc | v1.99.0 |
 | boa | v0.22.0 |
 | koto | v0.16.1 |
+| luamin | v0.1.0 |
 | mlua | v0.12.2 |
 | rhai | v1.26.1 |
 | roto | v0.12.0 |

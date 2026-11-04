@@ -57,12 +57,31 @@ fn partition(arr: &mut [RustData]) -> usize {
     j
 }
 
-fn quicksort(mut arr: &mut [RustData]) {
-    while !arr.is_empty() {
-        let p = partition(arr);
-        quicksort(&mut arr[..p]);
-        // Tail recursion
-        arr = &mut arr[p + 1..];
+fn quicksort(arr: &mut [RustData]) {
+    if arr.is_empty() {
+        return;
+    }
+    // Each triple stores lo, hi, and the previous stack entry (0 = empty).
+    let mut ranges = vec![0, arr.len() - 1, 0];
+    let mut top = 3;
+    while top > 0 {
+        let lo = ranges[top - 3];
+        let mut hi = ranges[top - 2];
+        top = ranges[top - 1];
+        while lo < hi {
+            let p = lo + partition(&mut arr[lo..=hi]);
+            if p + 1 < hi {
+                ranges.push(p + 1);
+                ranges.push(hi);
+                ranges.push(top);
+                top = ranges.len();
+            }
+            // Bounds use unsigned integers, so avoid subtracting from zero.
+            if p == 0 {
+                break;
+            }
+            hi = p - 1;
+        }
     }
 }
 

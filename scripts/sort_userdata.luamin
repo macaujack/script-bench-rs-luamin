@@ -1,0 +1,47 @@
+-- Strings are represented as character-code lists until RustData construction.
+local charset = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102}
+local array = {}
+for i = 1, count do
+    local length = 8 + rand(16)
+    local codes = {}
+    for j = 1, length do
+        codes[j] = charset[rand(16) + 1]
+    end
+    array[i] = rustdata_new(codes)
+end
+
+-- Iterative quicksort: emulate the original left-recursion/right-loop order
+-- with an explicit stack. Partitioning and swaps stay in the script.
+-- BEGIN SORT
+-- Each triple stores lo, hi, and the previous stack entry (0 = empty).
+local ranges = {1, #array, 0}
+local top = 3
+while top > 0 do
+    local lo = ranges[top - 2]
+    local hi = ranges[top - 1]
+    top = ranges[top]
+    while lo < hi do
+        local pivot_idx = (lo + hi) // 2
+        local pivot = array[pivot_idx]
+        array[pivot_idx], array[hi] = array[hi], array[pivot_idx]
+        local j = lo
+        for i = lo, hi - 1 do
+            if rustdata_lt(array[i], pivot) then
+                array[i], array[j] = array[j], array[i]
+                j = j + 1
+            end
+        end
+        array[j], array[hi] = array[hi], array[j]
+
+        -- Process the left partition now and defer the right partition.
+        if j + 1 < hi then
+            local size = #ranges
+            ranges[size + 1] = j + 1
+            ranges[size + 2] = hi
+            ranges[size + 3] = top
+            top = size + 3
+        end
+        hi = j - 1
+    end
+end
+return array

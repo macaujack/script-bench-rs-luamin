@@ -29,11 +29,21 @@ function partition(arr, lo, hi) {
 }
 
 function quicksort(arr, lo, hi) {
-    while (lo < hi) {
-        let p = partition(arr, lo, hi);
-        quicksort(arr, lo, p - 1);
-        // Tail recursion
-        lo = p + 1;
+    // Each triple stores lo, hi, and the previous stack entry (0 = empty).
+    let ranges = [lo, hi, 0];
+    let top = 3;
+    while (top > 0) {
+        lo = ranges[top - 3];
+        hi = ranges[top - 2];
+        top = ranges[top - 1];
+        while (lo < hi) {
+            let p = partition(arr, lo, hi);
+            if (p + 1 < hi) {
+                ranges.push(p + 1, hi, top);
+                top = ranges.length;
+            }
+            hi = p - 1;
+        }
     }
 }
 
